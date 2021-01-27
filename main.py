@@ -106,10 +106,10 @@ class IPSolver():
 
     def build(self):
         # Initialize the model
-        if (self.options["goal"] == "MIN"):
-            self.m = Model(sense=MINIMIZE, solver_name=CBC)
-        else:
+        if (self.options["goal"] == "MAX"):
             self.m = Model(sense=MAXIMIZE, solver_name=CBC)
+        else:
+            self.m = Model(sense=MINIMIZE, solver_name=CBC)
         self.m.verbose = 0
         self.m.emphasis = 0
 
