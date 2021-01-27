@@ -7,8 +7,12 @@ import re
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import linear_kernel
 import random
-import psutil
 import os
+from flask import Flask
+from flask import request
+# If `entrypoint` is not defined in app.yaml, App Engine will look for an app
+# called `app` in `main.py`.
+app = Flask(__name__)
 
 
 class Recommender:
@@ -102,8 +106,12 @@ class IPSolver():
 
     def build(self):
         # Initialize the model
-        self.m = Model(sense=self.options["goal"], solver_name=CBC)
+        if (self.options["goal"] == "MIN"):
+            self.m = Model(sense=MINIMIZE, solver_name=CBC)
+        else:
+            self.m = Model(sense=MAXIMIZE, solver_name=CBC)
         self.m.verbose = 0
+        self.m.emphasis = 0
 
         # The solver uses a branching algorithm, so order matters. Let's shuffle it to get new combinations
         food_vars = [self.m.add_var(name="_" + str(food), var_type=INTEGER, lb=0, ub=1) for food in self.food_items]
@@ -133,14 +141,19 @@ class IPSolver():
         objective = self.options["priority"]
 
         if objective == "calories":
+            print("Objective: " + objective)
             self.m.objective = xsum(cals_arr)
         elif objective == "protein" and "protein" in self.options:
+            print("Objective: " + objective)
             self.m.objective = xsum(protein_arr)
         elif objective == "carbohydrates" and "carbohydrates" in self.options:
+            print("Objective: " + objective)
             self.m.objective = xsum(carbs_arr)
         elif objective == "fats" and "fats" in self.options:
+            print("Objective: " + objective)
             self.m.objective = xsum(fats_arr)
         else:
+            print("Objective: total meals")
             self.m.objective = xsum(meals_arr)
 
         ## Optional settings
@@ -181,17 +194,18 @@ class DietOptimizer:
     # The recipe_id here is equal to the index
     pool = []
 
-    def __init__(self, constraints, user_like, user_allergy, foods_csv="modified.csv"):
-        union = Recommender().feature_recommendations(user_like, user_allergy, 10000, 250)
+    def __init__(self, content, foods_csv="modified.csv"):
+        union = Recommender().feature_recommendations(content["tastes"],content["allergens"], 2500, 250)
         flat_union = [item for sublist in union for item in sublist]
+        print("Number in recommended selection:" + str(len(flat_union)))
         df = pd.read_csv(foods_csv,
                          usecols=["recipe_name", "recipe_id", "calories", "protein", "carbohydrates", "fat",
                                   "ingredients"])
         self.df = df
         self.select = df.iloc[flat_union]
         # Clean up the constraints
-        defaults = {"goal": "MIN", "priority": "", "meals": [3, 5], "calories": [1500, 2000], "days": 7}
-        self.options = {**defaults, **constraints, "tastes": user_like, "allergens": user_allergy}
+        defaults = {"goal": "MAX", "priority": "", "meals": [3, 5], "calories": [1500, 2000], "days": 7}
+        self.options = {**defaults, **content}
 
     def display_results(self, menu):
         object = {"query": {**self.options}, "results": []}
@@ -230,7 +244,7 @@ class DietOptimizer:
             total_calories = round(total_calories, 1)
             total_carbs = round(total_carbs, 1)
             total_fat = round(total_fat, 1)
-            total_protein = round(total_fat, 1)
+            total_protein = round(total_protein, 1)
 
             if "calories" in self.options and (
                     self.options["calories"][0] > total_calories or self.options["calories"][1] < total_calories):
@@ -246,7 +260,7 @@ class DietOptimizer:
                 total_protein = str(total_protein) + "(unmet)"
 
             object["results"].append({"calories": total_calories, "carbohydrates": total_carbs, "fats": total_fat, "protein": total_protein, "meals": meals})
-        print(json.dumps(object, indent=4, sort_keys=True))
+        return (json.dumps(object, indent=4, sort_keys=False))
 
     def optimize(self):
         pool = []
@@ -258,21 +272,18 @@ class DietOptimizer:
             pool += IPSolver(self.options, self.select.sample(frac=1)).solve()
         return pool
 
-
-if __name__ == "__main__":
-    print('Start\n--------------------')
-    import time
-
-    start = time.time()
-    user_like = 'ice cream | (salty && Chinese)'
-    user_allergy = 'peanut|sesame|lobster'
-
-    params = {"meals": (4, 6), "calories": (1000, 2000), "carbohydrates": (60, 100), "protein": (50, 80), "optimize": "MAX"}
-
-    d = DietOptimizer(params, user_like, user_allergy)
+@app.route('/', methods=['POST'])
+def run():
+    content = request.get_json()
+    d = DietOptimizer(content)
     results = d.optimize()
-    end = time.time()
-    d.display_results(results)
-    print(u'Memory usage of current process：%.4f GB' % (
-            psutil.Process(os.getpid()).memory_info().rss / 1024 / 1024 / 1024))
-    print("Seconds elapsed: ", end - start)
+    return d.display_results(results), 200, {'Content-Type': 'application/json; charset=utf-8'}
+
+if __name__ == '__main__':
+
+    # This is used when running locally only. When deploying to Google App
+    # Engine, a webserver process such as Gunicorn will serve the app. This
+    # can be configured by adding an `entrypoint` to app.yaml.
+    app.run(host='127.0.0.1', port=8080, debug=True)
+    #run()
+
