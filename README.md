@@ -1,7 +1,7 @@
 # DietOptimizer
 Flask app that runs on Google App Engine for diet linear programming.
 
-# Example
+## Example
 
 POST http://dietlp.appspot.com
 ```
@@ -26,5 +26,5 @@ POST http://dietlp.appspot.com
  }
  ```
  
-# Documentation
+## Documentation
 TODO + refactoring
