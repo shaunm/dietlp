@@ -157,7 +157,7 @@ class IPSolver():
             self.m.objective = xsum(meals_arr)
 
         ## Optional settings
-        if "carbs" in self.options:
+        if "carbohydrates" in self.options:
             self.m += xsum(carbs_arr) >= self.options["carbohydrates"][
                 0], "CarbsMinimum"
             self.m += xsum(carbs_arr) <= self.options["carbohydrates"][
