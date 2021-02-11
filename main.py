@@ -278,7 +278,7 @@ def run():
     print(content)
     d = DietOptimizer(content)
     results = d.optimize()
-    return d.display_results(results), 200, {'Content-Type': 'application/json; charset=utf-8'}
+    return d.display_results(results), 200, {'Content-Type': 'application/json; charset=utf-8', 'Access-Control-Allow-Origin': '*'}
 
 if __name__ == '__main__':
 
