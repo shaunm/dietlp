@@ -110,7 +110,7 @@ class IPSolver():
             self.m = Model(sense=MAXIMIZE, solver_name=CBC)
         else:
             self.m = Model(sense=MINIMIZE, solver_name=CBC)
-        self.m.verbose = 0
+        self.m.verbose = 1
         self.m.emphasis = 0
 
         # The solver uses a branching algorithm, so order matters. Let's shuffle it to get new combinations
@@ -195,7 +195,7 @@ class DietOptimizer:
     pool = []
 
     def __init__(self, content, foods_csv="modified.csv"):
-        union = Recommender().feature_recommendations(content["tastes"],content["allergens"], 2500, 250)
+        union = Recommender().feature_recommendations(content["tastes"],content["allergens"], 2500, 1000)
         flat_union = [item for sublist in union for item in sublist]
         print("Number in recommended selection:" + str(len(flat_union)))
         df = pd.read_csv(foods_csv,
@@ -275,6 +275,7 @@ class DietOptimizer:
 @app.route('/', methods=['POST'])
 def run():
     content = request.get_json()
+    print(content)
     d = DietOptimizer(content)
     results = d.optimize()
     return d.display_results(results), 200, {'Content-Type': 'application/json; charset=utf-8'}
