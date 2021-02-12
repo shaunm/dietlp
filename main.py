@@ -273,7 +273,7 @@ class DietOptimizer:
             pool += IPSolver(self.options, self.select.sample(frac=1)).solve()
         return pool
 
-@app.route('/', methods=['POST'])
+@app.route('/', methods=['POST', 'OPTIONS'])
 def run():
     content = request.get_json()
     print(content)
