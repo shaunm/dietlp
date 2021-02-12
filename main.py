@@ -16,6 +16,8 @@ from flask_cors import CORS
 app = Flask(__name__)
 cors = CORS(app)
 
+app.config['PROPAGATE_EXCEPTIONS'] = False
+
 class Recommender:
     def __init__(self):
         # Reading recipes file. Then select attributes and generate the dataframe for calculation
