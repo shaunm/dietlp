@@ -85,7 +85,7 @@ class Recommender:
             removed_idx = []
             for i in recipe_indices:
                 for j in range(len(user_allergy)):
-                    if user_allergy[j] in self.recipes['ingredients'][i]:
+                    if user_allergy[j] in self.recipes['ingredients'][i] and user_allergy[j] != '':
                         print('The user is allergic to this recipe ' + self.recipe_name.iloc[i])
                         removed_idx.append(i)
                         break
