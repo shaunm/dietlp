@@ -200,7 +200,7 @@ class DietOptimizer:
     pool = []
 
     def __init__(self, content, foods_csv="modified.csv"):
-        union = Recommender().feature_recommendations(content["tastes"],content["allergens"], 2500, 1000)
+        union = Recommender().feature_recommendations(content["tastes"],content["allergens"], 2500, 500)
         flat_union = [item for sublist in union for item in sublist]
         print("Number in recommended selection:" + str(len(flat_union)))
         df = pd.read_csv(foods_csv,
@@ -277,7 +277,7 @@ class DietOptimizer:
             pool += IPSolver(self.options, self.select.sample(frac=1)).solve()
         return pool
 
-@app.route('/', methods=['POST', 'OPTIONS'])
+@app.route('/', methods=['POST'])
 def run():
     logging.info(request)
     content = request.get_json(force=True)
