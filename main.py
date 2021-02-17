@@ -9,6 +9,7 @@ from sklearn.metrics.pairwise import linear_kernel
 import random
 import os
 from flask import Flask
+from flask import jsonify
 from flask import request
 from flask_cors import CORS
 # If `entrypoint` is not defined in app.yaml, App Engine will look for an app
@@ -17,6 +18,7 @@ app = Flask(__name__)
 cors = CORS(app)
 
 app.config['PROPAGATE_EXCEPTIONS'] = False
+app.config['CORS_HEADERS'] = 'Content-Type'
 
 class Recommender:
     def __init__(self):
@@ -263,7 +265,7 @@ class DietOptimizer:
                 total_protein = str(total_protein) + "(unmet)"
 
             object["results"].append({"calories": total_calories, "carbohydrates": total_carbs, "fats": total_fat, "protein": total_protein, "meals": meals})
-        return (json.dumps(object, indent=4, sort_keys=False))
+        return (object)
 
     def optimize(self):
         pool = []
@@ -282,8 +284,8 @@ def run():
     
     d = DietOptimizer(content)
     results = d.optimize()
-    return d.display_results(results), 200, {'Content-Type': 'application/json; charset=utf-8', 'Access-Control-Allow-Origin': '*'}
-
+    return jsonify(d.display_results(results))
+    
 if __name__ == '__main__':
 
     # This is used when running locally only. When deploying to Google App
