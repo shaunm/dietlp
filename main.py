@@ -1,5 +1,5 @@
 import json
-
+import logging
 from mip import *
 import pandas as pd
 import numpy as np
@@ -278,7 +278,7 @@ class DietOptimizer:
 @app.route('/', methods=['POST', 'OPTIONS'])
 def run():
     content = request.json
-    print(content)
+    logging.info(content)
     d = DietOptimizer(content)
     results = d.optimize()
     return d.display_results(results), 200, {'Content-Type': 'application/json; charset=utf-8', 'Access-Control-Allow-Origin': '*'}
