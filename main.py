@@ -277,7 +277,7 @@ class DietOptimizer:
 
 @app.route('/', methods=['POST', 'OPTIONS'])
 def run():
-    content = request.get_json()
+    content = request.json
     print(content)
     d = DietOptimizer(content)
     results = d.optimize()
