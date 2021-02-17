@@ -277,8 +277,9 @@ class DietOptimizer:
 
 @app.route('/', methods=['POST', 'OPTIONS'])
 def run():
-    content = request.json
-    logging.info(content)
+    logging.info(request)
+    content = request.get_json(force=True)
+    
     d = DietOptimizer(content)
     results = d.optimize()
     return d.display_results(results), 200, {'Content-Type': 'application/json; charset=utf-8', 'Access-Control-Allow-Origin': '*'}
